@@ -1,1 +1,0 @@
-data/DrugOOD/sbap_core_ic50_protein.json filter=lfs diff=lfs merge=lfs -text
