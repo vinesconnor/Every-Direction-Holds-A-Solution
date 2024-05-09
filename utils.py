@@ -66,6 +66,14 @@ def get_preds(X, betas):
     return prds
 
 def aggregate_preds(preds):
+    """
+    Args:
+      preds - (n, M) where M is num of models in ensemble
+        (Can be one in directional, so need to check)
+    """
+    if len(preds.shape) == 1:
+        preds = tf.squeeze(preds)
+        return np.float32(preds > 0.5), None, None
     mean_pred = np.mean(preds, axis=-1, keepdims=False)
     std_pred = np.std(preds, axis=-1, keepdims=False)
     return (mean_pred > 0.5).astype(int), np.float32(mean_pred), np.float32(std_pred)
