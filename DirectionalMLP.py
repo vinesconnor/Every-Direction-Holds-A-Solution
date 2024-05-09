@@ -42,6 +42,12 @@ def get_subset_agreement(dir_test, beta_test, modeled_betas, X_pca, X_rand, perc
     agg = np.mean(agg)
     return agg
 
+def generate(mlp, M, K):
+    gen_dirs = np.random.randn(M, K)
+    gen_dirs = gen_dirs / np.linalg.norm(gen_dirs, axis=1, keepdims=True)
+    gen_betas = mlp.predict(gen_dirs)
+    return gen_dirs, gen_betas
+
 def mlp_main(dirs, betas, X_pca, X_rand, percentile):
     # Split the data into training and testing sets
     dir_train, dir_test, beta_train, beta_test = train_test_split(dirs, betas, test_size=0.2, random_state=42)

@@ -42,6 +42,12 @@ def get_subset_agreement(clust_test, beta_test, modeled_betas, X_rand, labels):
     agg = np.mean(agg)
     return agg
 
+def generate(mlp, M, c):
+    gen_clusters = np.random.randn(M, c)
+    gen_clusters = gen_clusters / np.linalg.norm(gen_clusters, axis=1, keepdims=True)
+    gen_betas = mlp.predict(gen_clusters)
+    return gen_clusters, gen_betas
+
 def mlp_main(clusts, betas, X_pca, X_rand, labels):
     # Split the data into training and testing sets
     clust_train, clust_test, beta_train, beta_test = train_test_split(clusts, betas, test_size=0.2, random_state=42)
