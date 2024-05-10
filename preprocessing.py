@@ -3,8 +3,62 @@ from rdkit.Chem import AllChem, Descriptors, DataStructs
 import numpy as np
 import json
 from sklearn.decomposition import PCA
+import csv
 
 def load_data(task: str, n_comps: int):
+    if task == 'chem':
+        return load_chem_data(n_comps)
+    else:
+        return load_drug_data(task, n_comps)
+
+def load_chem_data(n_comps: int):
+    with open('data/Chem/train.csv', 'r') as f:
+        train_feats = np.float32(np.array([line.strip().split(',')[2:] for line in f])[1:])
+    with open('data/Chem/train.csv', 'r') as f:
+        train_labels = np.float32(np.array([line.strip().split(',')[1] for line in f])[1:])
+
+    with open('data/Chem/val_id.csv', 'r') as f:
+        iid_val_feats = np.float32(np.array([line.strip().split(',')[2:] for line in f])[1:])
+    with open('data/Chem/val_id.csv', 'r') as f:
+        iid_val_labels = np.float32(np.array([line.strip().split(',')[1] for line in f])[1:])
+
+    with open('data/Chem/val_ood.csv', 'r') as f:
+        ood_val_feats = np.float32(np.array([line.strip().split(',')[4:] for line in f])[1:])
+    with open('data/Chem/val_ood.csv', 'r') as f:
+        ood_val_labels = np.float32(np.array([line.strip().split(',')[1] for line in f])[1:])
+
+    with open('data/Chem/test_id.csv', 'r') as f:
+        iid_test_feats = np.float32(np.array([line.strip().split(',')[2:] for line in f])[1:])
+    with open('data/Chem/test_id.csv', 'r') as f:
+        iid_test_labels = np.float32(np.array([line.strip().split(',')[1] for line in f])[1:])
+
+    with open('data/Chem/test_ood.csv', 'r') as f:
+        ood_test_feats = np.float32(np.array([line.strip().split(',')[4:] for line in f])[1:])
+    with open('data/Chem/test_ood.csv', 'r') as f:
+        ood_test_labels = np.float32(np.array([line.strip().split(',')[1] for line in f])[1:])
+
+    train_feats, mu, sigma = normalize(train_feats)
+    iid_val_feats = (iid_val_feats - mu) / sigma
+    ood_val_feats = (ood_val_feats - mu) / sigma
+    iid_test_feats = (iid_test_feats - mu) / sigma
+    ood_test_feats = (ood_test_feats - mu) / sigma
+
+    pca = PCA(n_components=n_comps)
+    train_feats = pca.fit_transform(train_feats)
+    iid_val_feats = pca.transform(iid_val_feats)
+    ood_val_feats = pca.transform(ood_val_feats)
+    iid_test_feats = pca.transform(iid_test_feats)
+    ood_test_feats = pca.transform(ood_test_feats)
+
+    return {
+        'train': (train_feats, train_labels),
+        'iid_val': (iid_val_feats, iid_val_labels),
+        'ood_val': (ood_val_feats, ood_val_labels),
+        'iid_test': (iid_test_feats, iid_test_labels),
+        'ood_test': (ood_test_feats, ood_test_labels)
+    }
+
+def load_drug_data(task: str, n_comps: int):
     """
     Args:
         task - ic50, ec50, potency
@@ -53,8 +107,6 @@ def load_data(task: str, n_comps: int):
         'iid_test': (iid_test_feats, iid_test_labels),
         'ood_test': (ood_test_feats, ood_test_labels)
     }
-
-    
 
 def load_json(task: str):
     path = f'data/DrugOOD/sbap_core_{task}_protein.json'
